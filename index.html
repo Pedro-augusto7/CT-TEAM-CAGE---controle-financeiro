@@ -2,111 +2,97 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>CT Team Cage App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CT Team Cage - Sistema PRO</title>
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff1e1e">
-
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body {font-family: Arial; background:#0f0f0f; color:white; margin:0;}
-header {background:#ff1e1e; padding:15px; text-align:center; font-size:18px; font-weight:bold;}
-.container {padding:15px;}
-input, select, textarea, button {
-  padding:12px; margin:5px; border-radius:10px; border:none; width:100%; font-size:16px;
-}
+header {background:#ff1e1e; padding:12px; text-align:center; font-size:18px;}
+.container {padding:10px;}
+input, select, textarea, button {padding:8px; margin:4px; border-radius:6px; border:none; font-size:14px;}
 button {background:#ff1e1e; color:white; cursor:pointer;}
-.card {background:#1a1a1a; padding:15px; border-radius:15px; margin-bottom:15px;}
-table {width:100%; border-collapse:collapse;}
-th, td {border:1px solid #333; padding:8px; text-align:center; font-size:14px;}
-.tabs {display:flex; overflow-x:auto;}
-.tabs button {flex:1; min-width:100px;}
+.card {background:#1a1a1a; padding:10px; border-radius:10px; margin-bottom:10px;}
+table {width:100%; border-collapse: collapse; margin-bottom:10px;}
+th, td {border:1px solid #333; padding:6px; text-align:center; font-size:13px;}
 .hidden {display:none;}
-canvas {background:#fff; border-radius:10px;}
+.tabs {display:flex; flex-wrap:wrap;}
+.tabs button {flex:1; margin:2px;}
+.sucesso {color:#00ff88; font-size:13px;}
+img {max-width:100%; border-radius:8px; margin-top:5px;}
 </style>
 </head>
 <body>
 
-<div id="login">
 <header>CT Team Cage</header>
 <div class="container">
-<div class="card">
-<input type="text" id="user" placeholder="Usuário">
-<input type="password" id="pass" placeholder="Senha">
-<button onclick="logar()">Entrar</button>
-</div>
-</div>
+
+<div id="loginArea" class="card">
+<input id="login" placeholder="Login">
+<input id="senha" placeholder="Senha">
+<button onclick="entrar()">Entrar</button>
 </div>
 
 <div id="app" class="hidden">
-<header>CT Team Cage</header>
-<div class="container">
 
 <div class="tabs">
 <button onclick="mostrarAba('alunos')">Alunos</button>
-<button onclick="mostrarAba('financeiro')">Financeiro</button>
+<button onclick="mostrarAba('lista')">Lista</button>
 <button onclick="mostrarAba('treinos')">Treinos</button>
-<button onclick="mostrarAba('infantil')">Infantil</button>
-<button onclick="mostrarAba('graficos')">Gráficos</button>
+<button onclick="mostrarAba('financeiro')">Financeiro</button>
+<button onclick="mostrarAba('pagamento')">Pagamento</button>
+<button onclick="mostrarAba('recibos')" id="btnRecibos">Recibos</button>
 </div>
 
 <div id="alunos" class="aba">
 <div class="card">
-<h3>Cadastrar</h3>
-<input type="text" id="nome" placeholder="Nome">
-<input type="number" id="valor" placeholder="Mensalidade">
+<input id="nome" placeholder="Nome completo">
+<input id="valor" type="number" placeholder="Mensalidade">
+<input id="nascimento" type="date">
 <select id="modalidade"><option>Muay Thai</option><option>Jiu-jitsu</option><option>Ambos</option></select>
-<input type="number" id="frequencia" placeholder="Dias por semana">
-<input type="date" id="nascimento">
+<input id="frequencia" type="number" placeholder="Dias por semana">
 <select id="horario">
 <option>07h</option><option>10h</option><option>17h</option>
 <option>18h</option><option>19h</option><option>20h</option><option>21h</option>
 </select>
-<textarea id="obs" placeholder="Observações"></textarea>
 <button onclick="addAluno()">Cadastrar</button>
+<div id="msgCadastro" class="sucesso"></div>
 </div>
 </div>
 
-<div id="financeiro" class="aba hidden">
+<div id="lista" class="aba hidden">
 <div class="card">
-<input type="text" id="busca" placeholder="Buscar" oninput="atualizar()">
 <table>
-<thead><tr><th>Nome</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead>
-<tbody id="tabela"></tbody>
+<thead><tr><th>Chapa</th><th>Nome</th><th>Nascimento</th><th>Ação</th></tr></thead>
+<tbody id="listaAlunos"></tbody>
 </table>
-</div>
-
-<div class="card">
-Total: R$ <span id="total">0</span><br>
-Pendente: R$ <span id="pendente">0</span><br>
-Alunos: <span id="totalAlunos">0</span>
 </div>
 </div>
 
 <div id="treinos" class="aba hidden">
+<div class="card" id="listaTreinos"></div>
+</div>
+
+<div id="financeiro" class="aba hidden">
 <div class="card">
-<div id="listaTreinos"></div>
+<canvas id="grafico"></canvas>
 </div>
 </div>
 
-<div id="infantil" class="aba hidden">
+<div id="pagamento" class="aba hidden">
 <div class="card">
-<ul id="listaInfantil"></ul>
+<input type="file" id="comprovante">
+<input id="comentario" placeholder="Nome do aluno">
+<button onclick="enviarComprovante()">Enviar</button>
 </div>
 </div>
 
-<div id="graficos" class="aba hidden">
+<div id="recibos" class="aba hidden">
 <div class="card">
-<canvas id="graficoFinanceiro"></canvas>
-</div>
-<div class="card">
-<input type="text" id="descGasto" placeholder="Gasto">
-<input type="number" id="valorGasto" placeholder="Valor">
-<button onclick="addGasto()">Adicionar</button>
-<ul id="listaGastos"></ul>
+<ul id="listaRecibos"></ul>
 </div>
 </div>
 
@@ -114,61 +100,104 @@ Alunos: <span id="totalAlunos">0</span>
 </div>
 
 <script>
-let alunos = JSON.parse(localStorage.getItem('alunos')) || [];
-let gastos = JSON.parse(localStorage.getItem('gastos')) || [];
+const firebaseConfig = {
+  apiKey: "AIzaSyC-RgXCfsR6Q-JrAiTPdPFw006dP38g7qQ",
+  authDomain: "ct-team-cage.firebaseapp.com",
+  projectId: "ct-team-cage",
+  storageBucket: "ct-team-cage.firebasestorage.app",
+  messagingSenderId: "540497002709",
+  appId: "1:540497002709:web:bff67ee8f4d5abe689a25c",
+  measurementId: "G-X3FBNMRCQR"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let alunos=[];
+let recibos=[];
 let chart;
 
-function logar(){
-  if(user.value==='admin' && pass.value==='1234'){
-    login.classList.add('hidden');
-    app.classList.remove('hidden');
-  } else alert('Erro');
+function entrar(){
+  loginArea.classList.add('hidden');
+  app.classList.remove('hidden');
 }
 
-function salvar(){localStorage.setItem('alunos', JSON.stringify(alunos));}
-function salvarGastos(){localStorage.setItem('gastos', JSON.stringify(gastos));}
+function gerarChapa(){
+  if(alunos.length===0) return 1100;
+  return Math.max(...alunos.map(a=>a.chapa))+1;
+}
 
 function addAluno(){
-  const ano = new Date(nascimento.value).getFullYear();
-  alunos.push({
-    nome:nome.value,
-    valor:parseFloat(valor.value),
-    infantil: ano>=2016 && ano<=2020,
-    horario:horario.value,
-    pago:false
+  const chapa=gerarChapa();
+  const nomeCompleto=nome.value;
+  const primeiro=nomeCompleto.split(' ')[0].toLowerCase();
+
+  db.collection('alunos').add({
+    chapa,nome:nomeCompleto,nascimento:nascimento.value,
+    valor:parseFloat(valor.value),modalidade:modalidade.value,
+    frequencia:frequencia.value,horario:horario.value
   });
-  salvar(); atualizar();
+
+  msgCadastro.innerText=`Cadastro concluído - Login: aluno.${primeiro} | Senha: ${chapa}`;
+  nome.value=''; valor.value=''; nascimento.value=''; frequencia.value='';
 }
 
-function addGasto(){
-  gastos.push({desc:descGasto.value, valor:parseFloat(valorGasto.value)});
-  salvarGastos(); atualizar();
+function excluirAluno(id){ db.collection('alunos').doc(id).delete(); }
+
+function editarAluno(id, nomeAtual){
+  const novo = prompt('Editar nome:', nomeAtual);
+  if(novo) db.collection('alunos').doc(id).update({nome:novo});
 }
 
-function excluirGasto(i){gastos.splice(i,1); salvarGastos(); atualizar();}
-function excluir(i){alunos.splice(i,1); salvar(); atualizar();}
-function marcar(i){alunos[i].pago=!alunos[i].pago; salvar(); atualizar();}
+function enviarComprovante(){
+  const file=comprovante.files[0];
+  if(!file) return;
+
+  const reader=new FileReader();
+  reader.onload=function(e){
+    db.collection('recibos').add({
+      arquivo:file.name,
+      comentario:comentario.value,
+      imagem:e.target.result
+    });
+  };
+  reader.readAsDataURL(file);
+
+  comprovante.value=''; comentario.value='';
+}
+
+// realtime
+db.collection('alunos').onSnapshot(snap=>{
+  alunos=[];
+  snap.forEach(doc=> alunos.push({id:doc.id,...doc.data()}));
+  atualizar();
+});
+
+db.collection('recibos').onSnapshot(snap=>{
+  recibos=[];
+  snap.forEach(doc=> recibos.push(doc.data()));
+  atualizar();
+});
 
 function atualizar(){
-  tabela.innerHTML=''; listaGastos.innerHTML=''; listaInfantil.innerHTML='';
-  let total=0, pendente=0;
+  listaAlunos.innerHTML=''; listaRecibos.innerHTML='';
 
+  let faturamento=0;
   let treinos={"07h":[],"10h":[],"17h":[],"18h":[],"19h":[],"20h":[],"21h":[]};
 
-  alunos.forEach((a,i)=>{
-    tabela.innerHTML+=`<tr><td>${a.nome}</td><td>${a.valor}</td><td>${a.pago?'Pago':'Pendente'}</td><td><button onclick="marcar(${i})">OK</button><button onclick="excluir(${i})">X</button></td></tr>`;
-    if(a.pago) total+=a.valor; else pendente+=a.valor;
-    if(a.infantil) listaInfantil.innerHTML+=`<li>${a.nome}</li>`;
-    treinos[a.horario].push(a.nome);
-  });
+  alunos.forEach(a=>{
+    faturamento+=a.valor||0;
+    listaAlunos.innerHTML+=`<tr>
+<td>${a.chapa}</td>
+<td>${a.nome}</td>
+<td>${a.nascimento}</td>
+<td>
+<button onclick="editarAluno('${a.id}','${a.nome}')">Editar</button>
+<button onclick="excluirAluno('${a.id}')">Excluir</button>
+</td></tr>`;
 
-  gastos.forEach((g,i)=>{
-    listaGastos.innerHTML+=`<li>${g.desc} R$${g.valor} <button onclick="excluirGasto(${i})">X</button></li>`;
+    if(treinos[a.horario]) treinos[a.horario].push(a.nome);
   });
-
-  total.innerText=total.toFixed(2);
-  pendente.innerText=pendente.toFixed(2);
-  totalAlunos.innerText=alunos.length;
 
   let html='';
   for(let h in treinos){
@@ -178,13 +207,12 @@ function atualizar(){
   }
   listaTreinos.innerHTML=html;
 
-  atualizarGrafico(total);
-}
+  recibos.forEach(r=>{
+    listaRecibos.innerHTML+=`<li>${r.comentario} - ${r.arquivo}<br><img src="${r.imagem}"></li>`;
+  });
 
-function atualizarGrafico(f){
-  let g=gastos.reduce((s,x)=>s+x.valor,0);
   if(chart) chart.destroy();
-  chart=new Chart(graficoFinanceiro,{type:'bar',data:{labels:['Faturamento','Gastos'],datasets:[{data:[f,g]}]}});
+  chart=new Chart(grafico,{type:'bar',data:{labels:['Faturamento'],datasets:[{data:[faturamento],backgroundColor:['blue']}]}});
 }
 
 function mostrarAba(id){
@@ -192,12 +220,13 @@ function mostrarAba(id){
   document.getElementById(id).classList.remove('hidden');
 }
 
-// Service Worker
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js');
-}
+window.addEventListener('keydown', e=>{
+  if(e.key==='Enter'){
+    const ativo=document.querySelector('.aba:not(.hidden) button');
+    if(ativo) ativo.click();
+  }
+});
 
-atualizar();
 </script>
 
 </body>
