@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CT Team Cage App</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff1e1e">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {font-family: Arial; background:#0f0f0f; color:white; margin:0;}
+header {background:#ff1e1e; padding:15px; text-align:center; font-size:18px; font-weight:bold;}
+.container {padding:15px;}
+input, select, textarea, button {
+  padding:12px; margin:5px; border-radius:10px; border:none; width:100%; font-size:16px;
+}
+button {background:#ff1e1e; color:white; cursor:pointer;}
+.card {background:#1a1a1a; padding:15px; border-radius:15px; margin-bottom:15px;}
+table {width:100%; border-collapse:collapse;}
+th, td {border:1px solid #333; padding:8px; text-align:center; font-size:14px;}
+.tabs {display:flex; overflow-x:auto;}
+.tabs button {flex:1; min-width:100px;}
+.hidden {display:none;}
+canvas {background:#fff; border-radius:10px;}
+</style>
+</head>
+<body>
+
+<div id="login">
+<header>CT Team Cage</header>
+<div class="container">
+<div class="card">
+<input type="text" id="user" placeholder="Usuário">
+<input type="password" id="pass" placeholder="Senha">
+<button onclick="logar()">Entrar</button>
+</div>
+</div>
+</div>
+
+<div id="app" class="hidden">
+<header>CT Team Cage</header>
+<div class="container">
+
+<div class="tabs">
+<button onclick="mostrarAba('alunos')">Alunos</button>
+<button onclick="mostrarAba('financeiro')">Financeiro</button>
+<button onclick="mostrarAba('treinos')">Treinos</button>
+<button onclick="mostrarAba('infantil')">Infantil</button>
+<button onclick="mostrarAba('graficos')">Gráficos</button>
+</div>
+
+<div id="alunos" class="aba">
+<div class="card">
+<h3>Cadastrar</h3>
+<input type="text" id="nome" placeholder="Nome">
+<input type="number" id="valor" placeholder="Mensalidade">
+<select id="modalidade"><option>Muay Thai</option><option>Jiu-jitsu</option><option>Ambos</option></select>
+<input type="number" id="frequencia" placeholder="Dias por semana">
+<input type="date" id="nascimento">
+<select id="horario">
+<option>07h</option><option>10h</option><option>17h</option>
+<option>18h</option><option>19h</option><option>20h</option><option>21h</option>
+</select>
+<textarea id="obs" placeholder="Observações"></textarea>
+<button onclick="addAluno()">Cadastrar</button>
+</div>
+</div>
+
+<div id="financeiro" class="aba hidden">
+<div class="card">
+<input type="text" id="busca" placeholder="Buscar" oninput="atualizar()">
+<table>
+<thead><tr><th>Nome</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead>
+<tbody id="tabela"></tbody>
+</table>
+</div>
+
+<div class="card">
+Total: R$ <span id="total">0</span><br>
+Pendente: R$ <span id="pendente">0</span><br>
+Alunos: <span id="totalAlunos">0</span>
+</div>
+</div>
+
+<div id="treinos" class="aba hidden">
+<div class="card">
+<div id="listaTreinos"></div>
+</div>
+</div>
+
+<div id="infantil" class="aba hidden">
+<div class="card">
+<ul id="listaInfantil"></ul>
+</div>
+</div>
+
+<div id="graficos" class="aba hidden">
+<div class="card">
+<canvas id="graficoFinanceiro"></canvas>
+</div>
+<div class="card">
+<input type="text" id="descGasto" placeholder="Gasto">
+<input type="number" id="valorGasto" placeholder="Valor">
+<button onclick="addGasto()">Adicionar</button>
+<ul id="listaGastos"></ul>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+let alunos = JSON.parse(localStorage.getItem('alunos')) || [];
+let gastos = JSON.parse(localStorage.getItem('gastos')) || [];
+let chart;
+
+function logar(){
+  if(user.value==='admin' && pass.value==='1234'){
+    login.classList.add('hidden');
+    app.classList.remove('hidden');
+  } else alert('Erro');
+}
+
+function salvar(){localStorage.setItem('alunos', JSON.stringify(alunos));}
+function salvarGastos(){localStorage.setItem('gastos', JSON.stringify(gastos));}
+
+function addAluno(){
+  const ano = new Date(nascimento.value).getFullYear();
+  alunos.push({
+    nome:nome.value,
+    valor:parseFloat(valor.value),
+    infantil: ano>=2016 && ano<=2020,
+    horario:horario.value,
+    pago:false
+  });
+  salvar(); atualizar();
+}
+
+function addGasto(){
+  gastos.push({desc:descGasto.value, valor:parseFloat(valorGasto.value)});
+  salvarGastos(); atualizar();
+}
+
+function excluirGasto(i){gastos.splice(i,1); salvarGastos(); atualizar();}
+function excluir(i){alunos.splice(i,1); salvar(); atualizar();}
+function marcar(i){alunos[i].pago=!alunos[i].pago; salvar(); atualizar();}
+
+function atualizar(){
+  tabela.innerHTML=''; listaGastos.innerHTML=''; listaInfantil.innerHTML='';
+  let total=0, pendente=0;
+
+  let treinos={"07h":[],"10h":[],"17h":[],"18h":[],"19h":[],"20h":[],"21h":[]};
+
+  alunos.forEach((a,i)=>{
+    tabela.innerHTML+=`<tr><td>${a.nome}</td><td>${a.valor}</td><td>${a.pago?'Pago':'Pendente'}</td><td><button onclick="marcar(${i})">OK</button><button onclick="excluir(${i})">X</button></td></tr>`;
+    if(a.pago) total+=a.valor; else pendente+=a.valor;
+    if(a.infantil) listaInfantil.innerHTML+=`<li>${a.nome}</li>`;
+    treinos[a.horario].push(a.nome);
+  });
+
+  gastos.forEach((g,i)=>{
+    listaGastos.innerHTML+=`<li>${g.desc} R$${g.valor} <button onclick="excluirGasto(${i})">X</button></li>`;
+  });
+
+  total.innerText=total.toFixed(2);
+  pendente.innerText=pendente.toFixed(2);
+  totalAlunos.innerText=alunos.length;
+
+  let html='';
+  for(let h in treinos){
+    html+=`<table><tr><th>${h}</th></tr>`;
+    treinos[h].forEach(n=> html+=`<tr><td>${n}</td></tr>`);
+    html+='</table>';
+  }
+  listaTreinos.innerHTML=html;
+
+  atualizarGrafico(total);
+}
+
+function atualizarGrafico(f){
+  let g=gastos.reduce((s,x)=>s+x.valor,0);
+  if(chart) chart.destroy();
+  chart=new Chart(graficoFinanceiro,{type:'bar',data:{labels:['Faturamento','Gastos'],datasets:[{data:[f,g]}]}});
+}
+
+function mostrarAba(id){
+  document.querySelectorAll('.aba').forEach(a=>a.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
+
+atualizar();
+</script>
+
+</body>
+</html>
