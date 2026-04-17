@@ -1,233 +1,398 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CT Team Cage - Sistema PRO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CT Team Cage - Sistema PRO</title>
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-body {font-family: Arial; background:#0f0f0f; color:white; margin:0;}
-header {background:#ff1e1e; padding:12px; text-align:center; font-size:18px;}
-.container {padding:10px;}
-input, select, textarea, button {padding:8px; margin:4px; border-radius:6px; border:none; font-size:14px;}
-button {background:#ff1e1e; color:white; cursor:pointer;}
-.card {background:#1a1a1a; padding:10px; border-radius:10px; margin-bottom:10px;}
-table {width:100%; border-collapse: collapse; margin-bottom:10px;}
-th, td {border:1px solid #333; padding:6px; text-align:center; font-size:13px;}
-.hidden {display:none;}
-.tabs {display:flex; flex-wrap:wrap;}
-.tabs button {flex:1; margin:2px;}
-.sucesso {color:#00ff88; font-size:13px;}
-img {max-width:100%; border-radius:8px; margin-top:5px;}
-</style>
+  <style>
+    body {
+      font-family: Arial;
+      background: #0f0f0f;
+      color: white;
+      margin: 0;
+    }
+
+    header {
+      background: #ff1e1e;
+      padding: 12px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .container {
+      padding: 10px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      padding: 8px;
+      margin: 4px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+
+    button {
+      background: #ff1e1e;
+      color: white;
+      cursor: pointer;
+    }
+
+    .card {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+
+    th,
+    td {
+      border: 1px solid #333;
+      padding: 6px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .tabs button {
+      flex: 1;
+      margin: 2px;
+    }
+
+    .sucesso {
+      color: #00ff88;
+      font-size: 13px;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: 5px;
+    }
+  </style>
 </head>
+
 <body>
 
-<header>CT Team Cage</header>
-<div class="container">
+  <header>CT Team Cage</header>
+  <div class="container">
 
-<div id="loginArea" class="card">
-<input id="login" placeholder="Login">
-<input id="senha" placeholder="Senha">
-<button onclick="entrar()">Entrar</button>
-</div>
+    <div id="loginArea" class="card">
+      <input id="login" placeholder="Login">
+      <input id="senha" placeholder="Senha">
+      <button onclick="entrar()">Entrar</button>
+    </div>
 
-<div id="app" class="hidden">
+    <div id="app" class="hidden">
 
-<div class="tabs">
-<button onclick="mostrarAba('alunos')">Alunos</button>
-<button onclick="mostrarAba('lista')">Lista</button>
-<button onclick="mostrarAba('treinos')">Treinos</button>
-<button onclick="mostrarAba('financeiro')">Financeiro</button>
-<button onclick="mostrarAba('pagamento')">Pagamento</button>
-<button onclick="mostrarAba('recibos')" id="btnRecibos">Recibos</button>
-</div>
+      <div class="tabs">
+        <button onclick="mostrarAba('alunos')">Alunos</button>
+        <button onclick="mostrarAba('lista')">Lista</button>
+        <button onclick="mostrarAba('treinos')">Treinos</button>
+        <button onclick="mostrarAba('financeiro')">Financeiro</button>
+        <button onclick="mostrarAba('pagamento')">Pagamento</button>
+        <button onclick="mostrarAba('recibos')" id="btnRecibos">Recibos</button>
+      </div>
 
-<div id="alunos" class="aba">
-<div class="card">
-<input id="nome" placeholder="Nome completo">
-<input id="valor" type="number" placeholder="Mensalidade">
-<input id="nascimento" type="date">
-<select id="modalidade"><option>Muay Thai</option><option>Jiu-jitsu</option><option>Ambos</option></select>
-<input id="frequencia" type="number" placeholder="Dias por semana">
-<select id="horario">
-<option>07h</option><option>10h</option><option>17h</option>
-<option>18h</option><option>19h</option><option>20h</option><option>21h</option>
-</select>
-<button onclick="addAluno()">Cadastrar</button>
-<div id="msgCadastro" class="sucesso"></div>
-</div>
-</div>
+      <div id="alunos" class="aba">
+        <div class="card">
+          <input id="nome" placeholder="Nome completo">
+          <input id="valor" type="number" placeholder="Mensalidade">
+          <input id="nascimento" type="date">
+          <select id="modalidade">
+            <option>Muay Thai</option>
+            <option>Jiu-jitsu</option>
+            <option>Ambos</option>
+          </select>
+          <input id="frequencia" type="number" placeholder="Dias por semana">
+          <select id="horario">
+            <option>07h</option>
+            <option>10h</option>
+            <option>17h</option>
+            <option>18h</option>
+            <option>19h</option>
+            <option>20h</option>
+            <option>21h</option>
+          </select>
+          <button onclick="addAluno()">Cadastrar</button>
+          <div id="msgCadastro" class="sucesso"></div>
+        </div>
+      </div>
 
-<div id="lista" class="aba hidden">
-<div class="card">
-<table>
-<thead><tr><th>Chapa</th><th>Nome</th><th>Nascimento</th><th>Ação</th></tr></thead>
-<tbody id="listaAlunos"></tbody>
-</table>
-</div>
-</div>
+      <div id="lista" class="aba hidden">
+        <div class="card">
+          <table>
+            <thead>
+              <tr>
+                <th>Chapa</th>
+                <th>Nome</th>
+                <th>Nascimento</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="listaAlunos"></tbody>
+          </table>
+        </div>
+      </div>
 
-<div id="treinos" class="aba hidden">
-<div class="card" id="listaTreinos"></div>
-</div>
+      <div id="treinos" class="aba hidden">
+        <div class="card" id="listaTreinos"></div>
+      </div>
 
-<div id="financeiro" class="aba hidden">
-<div class="card">
-<canvas id="grafico"></canvas>
-</div>
-</div>
+      <div id="financeiro" class="aba hidden">
+        <div class="card">
+          <canvas id="grafico"></canvas>
+        </div>
+      </div>
 
-<div id="pagamento" class="aba hidden">
-<div class="card">
-<input type="file" id="comprovante">
-<input id="comentario" placeholder="Nome do aluno">
-<button onclick="enviarComprovante()">Enviar</button>
-</div>
-</div>
+      <div id="pagamento" class="aba hidden">
+        <div class="card">
+          <input type="file" id="comprovante">
+          <input id="comentario" placeholder="Nome do aluno">
+          <button onclick="enviarComprovante()">Enviar</button>
+        </div>
+      </div>
 
-<div id="recibos" class="aba hidden">
-<div class="card">
-<ul id="listaRecibos"></ul>
-</div>
-</div>
+      <div id="recibos" class="aba hidden">
+        <div class="card">
+          <ul id="listaRecibos"></ul>
+        </div>
+      </div>
 
-</div>
-</div>
+    </div>
+  </div>
 
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyC-RgXCfsR6Q-JrAiTPdPFw006dP38g7qQ",
-  authDomain: "ct-team-cage.firebaseapp.com",
-  projectId: "ct-team-cage",
-  storageBucket: "ct-team-cage.firebasestorage.app",
-  messagingSenderId: "540497002709",
-  appId: "1:540497002709:web:bff67ee8f4d5abe689a25c",
-  measurementId: "G-X3FBNMRCQR"
-};
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-RgXCfsR6Q-JrAiTPdPFw006dP38g7qQ",
+      authDomain: "ct-team-cage.firebaseapp.com",
+      projectId: "ct-team-cage",
+      storageBucket: "ct-team-cage.firebasestorage.app",
+      messagingSenderId: "540497002709",
+      appId: "1:540497002709:web:bff67ee8f4d5abe689a25c",
+      measurementId: "G-X3FBNMRCQR"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
 
-let alunos=[];
-let recibos=[];
-let chart;
+    // Elementos DOM
+    const loginArea = document.getElementById('loginArea');
+    const app = document.getElementById('app');
+    const nome = document.getElementById('nome');
+    const valor = document.getElementById('valor');
+    const nascimento = document.getElementById('nascimento');
+    const modalidade = document.getElementById('modalidade');
+    const frequencia = document.getElementById('frequencia');
+    const horario = document.getElementById('horario');
+    const msgCadastro = document.getElementById('msgCadastro');
+    const listaAlunos = document.getElementById('listaAlunos');
+    const listaTreinos = document.getElementById('listaTreinos');
+    const grafico = document.getElementById('grafico');
+    const comprovante = document.getElementById('comprovante');
+    const comentario = document.getElementById('comentario');
+    const listaRecibos = document.getElementById('listaRecibos');
+    const loginInput = document.getElementById('login');
+    const senhaInput = document.getElementById('senha');
 
-function entrar(){
-  loginArea.classList.add('hidden');
-  app.classList.remove('hidden');
-}
+    let alunos = [];
+    let recibos = [];
+    let chart;
 
-function gerarChapa(){
-  if(alunos.length===0) return 1100;
-  return Math.max(...alunos.map(a=>a.chapa))+1;
-}
+    function entrar() {
+      const login = loginInput.value;
+      const senha = senhaInput.value;
+      // Validação simples; substitua por Firebase Auth para produção
+      if (login === 'admin' && senha === '123') {
+        loginArea.classList.add('hidden');
+        app.classList.remove('hidden');
+      } else {
+        alert('Login ou senha inválidos');
+      }
+    }
 
-function addAluno(){
-  const chapa=gerarChapa();
-  const nomeCompleto=nome.value;
-  const primeiro=nomeCompleto.split(' ')[0].toLowerCase();
+    function gerarChapa() {
+      if (alunos.length === 0) return 1100;
+      return Math.max(...alunos.map(a => a.chapa)) + 1;
+    }
 
-  db.collection('alunos').add({
-    chapa,nome:nomeCompleto,nascimento:nascimento.value,
-    valor:parseFloat(valor.value),modalidade:modalidade.value,
-    frequencia:frequencia.value,horario:horario.value
-  });
+    async function addAluno() {
+      if (!nome.value || !valor.value || !nascimento.value) {
+        alert('Preencha todos os campos obrigatórios');
+        return;
+      }
+      const chapa = gerarChapa();
+      const nomeCompleto = nome.value;
+      const primeiro = nomeCompleto.split(' ')[0].toLowerCase();
+      try {
+        await db.collection('alunos').add({
+          chapa, nome: nomeCompleto, nascimento: nascimento.value,
+          valor: parseFloat(valor.value), modalidade: modalidade.value,
+          frequencia: frequencia.value, horario: horario.value
+        });
+        msgCadastro.innerText = `Cadastro concluído - Login: aluno.${primeiro} | Senha: ${chapa}`;
+        nome.value = ''; valor.value = ''; nascimento.value = ''; frequencia.value = '';
+      } catch (error) {
+        console.error('Erro ao cadastrar:', error);
+        alert('Erro ao cadastrar aluno');
+      }
+    }
 
-  msgCadastro.innerText=`Cadastro concluído - Login: aluno.${primeiro} | Senha: ${chapa}`;
-  nome.value=''; valor.value=''; nascimento.value=''; frequencia.value='';
-}
+    async function excluirAluno(id) {
+      try {
+        await db.collection('alunos').doc(id).delete();
+      } catch (error) {
+        console.error('Erro ao excluir:', error);
+        alert('Erro ao excluir aluno');
+      }
+    }
 
-function excluirAluno(id){ db.collection('alunos').doc(id).delete(); }
+    async function editarAluno(id, nomeAtual) {
+      const novo = prompt('Editar nome:', nomeAtual);
+      if (novo) {
+        try {
+          await db.collection('alunos').doc(id).update({ nome: novo });
+        } catch (error) {
+          console.error('Erro ao editar:', error);
+          alert('Erro ao editar aluno');
+        }
+      }
+    }
 
-function editarAluno(id, nomeAtual){
-  const novo = prompt('Editar nome:', nomeAtual);
-  if(novo) db.collection('alunos').doc(id).update({nome:novo});
-}
+    async function enviarComprovante() {
+      const file = comprovante.files[0];
+      if (!file) return;
+      try {
+        const storageRef = storage.ref(`recibos/${file.name}`);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
+        await db.collection('recibos').add({
+          arquivo: file.name,
+          comentario: comentario.value,
+          imagem: url
+        });
+        comprovante.value = ''; comentario.value = '';
+      } catch (error) {
+        console.error('Erro ao enviar:', error);
+        alert('Erro ao enviar comprovante');
+      }
+    }
 
-function enviarComprovante(){
-  const file=comprovante.files[0];
-  if(!file) return;
-
-  const reader=new FileReader();
-  reader.onload=function(e){
-    db.collection('recibos').add({
-      arquivo:file.name,
-      comentario:comentario.value,
-      imagem:e.target.result
+    // Listeners em tempo real
+    db.collection('alunos').onSnapshot(snap => {
+      alunos = [];
+      snap.forEach(doc => alunos.push({ id: doc.id, ...doc.data() }));
+      atualizar();
     });
-  };
-  reader.readAsDataURL(file);
 
-  comprovante.value=''; comentario.value='';
-}
+    db.collection('recibos').onSnapshot(snap => {
+      recibos = [];
+      snap.forEach(doc => recibos.push(doc.data()));
+      atualizar();
+    });
 
-// realtime
-db.collection('alunos').onSnapshot(snap=>{
-  alunos=[];
-  snap.forEach(doc=> alunos.push({id:doc.id,...doc.data()}));
-  atualizar();
-});
+    function atualizar() {
+      listaAlunos.innerHTML = '';
+      listaRecibos.innerHTML = '';
 
-db.collection('recibos').onSnapshot(snap=>{
-  recibos=[];
-  snap.forEach(doc=> recibos.push(doc.data()));
-  atualizar();
-});
+      let faturamento = 0;
+      let treinos = { "07h": [], "10h": [], "17h": [], "18h": [], "19h": [], "20h": [], "21h": [] };
 
-function atualizar(){
-  listaAlunos.innerHTML=''; listaRecibos.innerHTML='';
+      alunos.forEach(a => {
+        faturamento += a.valor || 0;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${a.chapa}</td>
+          <td>${a.nome}</td>
+          <td>${a.nascimento}</td>
+          <td>
+            <button onclick="editarAluno('${a.id}','${a.nome}')">Editar</button>
+            <button onclick="excluirAluno('${a.id}')">Excluir</button>
+          </td>
+        `;
+        listaAlunos.appendChild(row);
 
-  let faturamento=0;
-  let treinos={"07h":[],"10h":[],"17h":[],"18h":[],"19h":[],"20h":[],"21h":[]};
+        if (treinos[a.horario]) treinos[a.horario].push(a.nome);
+      });
 
-  alunos.forEach(a=>{
-    faturamento+=a.valor||0;
-    listaAlunos.innerHTML+=`<tr>
-<td>${a.chapa}</td>
-<td>${a.nome}</td>
-<td>${a.nascimento}</td>
-<td>
-<button onclick="editarAluno('${a.id}','${a.nome}')">Editar</button>
-<button onclick="excluirAluno('${a.id}')">Excluir</button>
-</td></tr>`;
+      let html = '';
+      for (let h in treinos) {
+        html += `<table><tr><th>${h}</th></tr>`;
+        treinos[h].forEach(n => html += `<tr><td>${n}</td></tr>`);
+        html += '</table>';
+      }
+      listaTreinos.innerHTML = html;
 
-    if(treinos[a.horario]) treinos[a.horario].push(a.nome);
-  });
+      recibos.forEach(r => {
+        const li = document.createElement('li');
+        li.innerHTML = `${r.comentario} - ${r.arquivo}<br><img src="${r.imagem}">`;
+        listaRecibos.appendChild(li);
+      });
 
-  let html='';
-  for(let h in treinos){
-    html+=`<table><tr><th>${h}</th></tr>`;
-    treinos[h].forEach(n=> html+=`<tr><td>${n}</td></tr>`);
-    html+='</table>';
-  }
-  listaTreinos.innerHTML=html;
+      if (chart) chart.destroy();
+      chart = new Chart(grafico, {
+        type: 'bar',
+        data: {
+          labels: ['Faturamento Total'],
+          datasets: [{
+            label: 'Valor (R$)',
+            data: [faturamento],
+            backgroundColor: ['#ff1e1e']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
 
-  recibos.forEach(r=>{
-    listaRecibos.innerHTML+=`<li>${r.comentario} - ${r.arquivo}<br><img src="${r.imagem}"></li>`;
-  });
+    function mostrarAba(id) {
+      document.querySelectorAll('.aba').forEach(a => a.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+    }
 
-  if(chart) chart.destroy();
-  chart=new Chart(grafico,{type:'bar',data:{labels:['Faturamento'],datasets:[{data:[faturamento],backgroundColor:['blue']}]}});
-}
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const form = document.querySelector('.aba:not(.hidden) form');
+        if (form) form.submit();
+        else {
+          // Alternativa: clique no botão de ação se não houver form
+          const btn = document.querySelector('.aba:not(.hidden) button:not(.tabs button)');
+          if (btn) btn.click();
+        }
+      }
+    });
 
-function mostrarAba(id){
-  document.querySelectorAll('.aba').forEach(a=>a.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-}
-
-window.addEventListener('keydown', e=>{
-  if(e.key==='Enter'){
-    const ativo=document.querySelector('.aba:not(.hidden) button');
-    if(ativo) ativo.click();
-  }
-});
-
-</script>
+  </script>
 
 </body>
+
 </html>
